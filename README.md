@@ -143,7 +143,20 @@ Manually trigger the matching engine to group pending bookings into rides.
   }
   ```
 
-### 3. Check Health
+### 3. Check Booking Status
+- **Endpoint**: `GET /api/bookings/:id`
+- **Response**:
+  ```json
+  {
+    "bookingId": "uuid",
+    "status": "MATCHED",
+    "rideId": "ride-uuid",
+    "driverId": "vehicle-uuid",
+    "estimatedPrice": 450.50
+  }
+  ```
+
+### 4. Check Health
 - **Endpoint**: `GET /health`
 - **Response**: `{ "status": "ok", "timestamp": "..." }`
 

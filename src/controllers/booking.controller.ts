@@ -148,3 +148,29 @@ export const triggerMatching = async (_req: Request, res: Response): Promise<voi
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+export const getBookingStatus = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const booking = await prisma.booking.findUnique({
+            where: { id },
+            include: { ride: true }
+        });
+
+        if (!booking) {
+            res.status(404).json({ error: 'Booking not found' });
+            return;
+        }
+
+        res.status(200).json({
+            bookingId: booking.id,
+            status: booking.status,
+            rideId: booking.rideId,
+            driverId: booking.ride?.vehicleId || null,
+            estimatedPrice: booking.fare
+        });
+    } catch (error) {
+        console.error('Error fetching status:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
