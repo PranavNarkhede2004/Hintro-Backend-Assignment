@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  bookings  Booking[]
+}
+
+model Vehicle {
+  id              String   @id @default(uuid())
+  capacity        Int      @default(3)
+  currentLat      Float
+  currentLng      Float
+  isAvailable     Boolean  @default(true)
+  rides           Ride[]
+}
+
+model Ride {
+  id          String    @id @default(uuid())
+  vehicleId   String?
+  vehicle     Vehicle?  @relation(fields: [vehicleId], references: [id])
+  status      RideStatus @default(PENDING)
+  startTime   DateTime?
+  endTime     DateTime?
+  bookings    Booking[]
+  route       Json?     // Stored as simplified JSON of waypoints or polyline
+  totalDistance Float?
+  totalPrice    Float?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Booking {
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  rideId      String?
+  ride        Ride?         @relation(fields: [rideId], references: [id])
+  pickupLat   Float
+  pickupLng   Float
+  dropoffLat  Float
+  dropoffLng  Float
+  status      BookingStatus @default(PENDING)
+  fare        Float?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum RideStatus {
+  PENDING
+  MATCHED
+  STARTED
+  COMPLETED
+  CANCELLED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
