@@ -29,6 +29,19 @@ export const createBooking = async (req: Request, res: Response): Promise<void> 
 
         const estimatedPrice = PricingService.calculatePrice(distance_km, activeRequests, availableVehicles || 1); // Avoid div by zero
 
+        // Check if user exists, if not create them (Fix for "fix this now" request)
+        let user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            console.log(`User ${userId} not found, creating new user...`);
+            user = await prisma.user.create({
+                data: {
+                    id: userId,
+                    name: `User ${userId.substring(0, 8)}`,
+                    email: `${userId}@example.com` // Dummy email
+                }
+            });
+        }
+
         // Create booking in DB
         const booking = await prisma.booking.create({
             data: {
@@ -151,7 +164,7 @@ export const triggerMatching = async (_req: Request, res: Response): Promise<voi
 
 export const getBookingStatus = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { id } = req.params;
+        const id = req.params.id as string;
         const booking = await prisma.booking.findUnique({
             where: { id },
             include: { ride: true }
@@ -166,7 +179,7 @@ export const getBookingStatus = async (req: Request, res: Response): Promise<voi
             bookingId: booking.id,
             status: booking.status,
             rideId: booking.rideId,
-            driverId: booking.ride?.vehicleId || null,
+            driverId: (booking as any).ride?.vehicleId || null,
             estimatedPrice: booking.fare
         });
     } catch (error) {
